@@ -14,7 +14,9 @@ private:
     glm::uvec2 size;
 
     std::vector<std::optional<T>> data;
-    const std::optional<T> empty = std::nullopt;
+
+    /// For when SparseGrid::get needs to return an reference to an out of bounds position
+    static const inline std::optional<T> empty = std::nullopt;
 
     /// Has no bounds check
     uint32_t getIndex(glm::ivec2 position) {
@@ -22,7 +24,7 @@ private:
     }
 
 public:
-    SparseGrid(glm::uvec2 size) :
+    explicit SparseGrid(glm::uvec2 size) :
         size(size),
         data(std::vector<std::optional<T>>(size.x * size.y)) {}
 
@@ -58,7 +60,28 @@ public:
         if (!isInBounds(position)) return;
 
         auto index = getIndex(position);
-        data[index] = value;
+        data.at(index).emplace(std::move(value));
+    }
+
+    void swap(glm::ivec2 a, glm::ivec2 b) {
+        if (!isInBounds(a) || !isInBounds(b)) return;
+
+        auto aIndex = getIndex(a);
+        auto bIndex = getIndex(b);
+
+        std::optional<T> aElement = std::move(data.at(aIndex));
+        std::optional<T> bElement = std::move(data.at(bIndex));
+
+        if (aElement.has_value() && bElement.has_value()) {
+            data.at(aIndex).emplace(std::move(bElement.value()));
+            data.at(bIndex).emplace(std::move(bElement.value()));
+        } else if (aElement.has_value()) {
+            data.at(aIndex).reset();
+            data.at(bIndex).emplace(std::move(aElement.value()));
+        } else if (bElement.has_value()) {
+            data.at(bIndex).reset();
+            data.at(aIndex).emplace(std::move(bElement.value()));
+        }
     }
 };
 

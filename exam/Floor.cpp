@@ -54,16 +54,16 @@ Floor Floor::create(glm::uvec2 size) {
 
     std::vector<Vertex> vertices = {
         { // right top
-            .position = {size.x, size.y},
-        },
-        { // right bottom
             .position = {size.x, 0.f},
         },
+        { // right bottom
+            .position = {size.x, size.y},
+        },
         { // left top
-            .position = {0.f, size.y},
+            .position = {0.f, 0.f},
         },
         { // left bottom
-            .position = {0.f, 0.f},
+            .position = {0.f, size.y},
         },
     };
 
