@@ -5,13 +5,18 @@ const std::string vertexShaderSource = R"(
     #version 450 core
 
     layout(location = 0) in vec2 position;
-    layout(location = 1) in uvec2 grid_position;
+
+    out VertexData {
+        vec2 grid_position;
+    } vertex_data;
 
     uniform mat4 projection;
     uniform mat4 view;
     uniform mat4 model;
 
     void main() {
+        vertex_data.grid_position = position;
+
         gl_Position = projection * view * model * vec4(position, 0, 1);
     }
 )";
@@ -20,10 +25,27 @@ const std::string vertexShaderSource = R"(
 const std::string fragmentShaderSource = R"(
     #version 450 core
 
+    in VertexData {
+        vec2 grid_position;
+    } vertex_data;
+
     out vec4 color;
 
+    const float LINE_WIDTH = 0.05;
+
+    const vec3 COLOR = vec3(1, 1, 1);
+    const vec3 GRID_COLOR = vec3(0.2, 0.2, 0.2);
+
     void main() {
-        color = vec4(1, 1, 1, 1);
+        vec2 distance_from_grid = fract(vertex_data.grid_position);
+
+        bool vertical_line = distance_from_grid.x < LINE_WIDTH || distance_from_grid.x > (1. - LINE_WIDTH);
+        bool horizontal_line = distance_from_grid.y < LINE_WIDTH || distance_from_grid.y > (1. - LINE_WIDTH);
+
+        // If there is either a line horizontally or vertically
+        bool grid = vertical_line || horizontal_line;
+
+        color = vec4(grid ? GRID_COLOR : COLOR, 1);
     }
 )";
 
@@ -33,19 +55,15 @@ Floor Floor::create(glm::uvec2 size) {
     std::vector<Vertex> vertices = {
         { // right top
             .position = {size.x, size.y},
-            .gridPosition = {size.x, size.y}
         },
         { // right bottom
             .position = {size.x, 0.f},
-            .gridPosition = {size.x, 0}
         },
         { // left top
             .position = {0.f, size.y},
-            .gridPosition = {0, size.y}
         },
         { // left bottom
             .position = {0.f, 0.f},
-            .gridPosition = {0, 0}
         },
     };
 
@@ -66,7 +84,6 @@ Floor Floor::create(glm::uvec2 size) {
     );
 
     return {
-        .size = size,
         .shader = shader,
         .vertexArray = std::move(vertexArray)
     };

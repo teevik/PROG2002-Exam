@@ -11,17 +11,12 @@ struct Floor {
     struct Vertex {
         /// Vertex position
         glm::vec2 position;
-
-        /// The corresponding grid position for this vertex
-        glm::uvec2 gridPosition;
     };
 
     inline static const std::vector<framework::VertexAttribute> VERTEX_ATTRIBUTES = {
         {.type = GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
-        {.type = GL_UNSIGNED_INT, .size = 2, .offset = offsetof(Vertex, gridPosition)},
     };
 
-    const glm::uvec2 size;
     const std::shared_ptr<framework::Shader> shader;
     const framework::VertexArray<Vertex> vertexArray;
 
