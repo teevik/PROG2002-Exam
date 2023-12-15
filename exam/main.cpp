@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <random>
 #include "glm/gtx/hash.hpp"
+#include "models.h"
 
 enum class ObjectType {
     Wall,
@@ -33,6 +34,7 @@ std::vector<glm::uvec2> getShuffledBoardPositions() {
 }
 
 struct Board {
+    const std::vector<glm::uvec2> storageLocations;
     std::unordered_map<glm::uvec2, ObjectType> objects;
     glm::uvec2 playerPosition;
 };
@@ -40,7 +42,7 @@ struct Board {
 Board createInitialBoard() {
     auto objects = std::unordered_map<glm::uvec2, ObjectType>();
 
-    //
+    // Add all walls
     for (uint32_t x = 0; x < BOARD_SIZE.x; x++) {
         objects.insert({{x, 0}, ObjectType::Wall});
         objects.insert({{x, BOARD_SIZE.y - 1}, ObjectType::Wall});
@@ -50,8 +52,8 @@ Board createInitialBoard() {
         objects.insert({{BOARD_SIZE.x - 1, y}, ObjectType::Wall});
     }
 
+    // Helper list for finding random positions without picking the same one again
     auto shuffledBoardPositions = getShuffledBoardPositions();
-
     auto nextRandomPosition = [&shuffledBoardPositions]() {
         auto value = shuffledBoardPositions.back();
         shuffledBoardPositions.pop_back();
@@ -59,9 +61,15 @@ Board createInitialBoard() {
         return value;
     };
 
+    std::vector<glm::uvec2> storageLocations;
+
+    // Insert all objects
     for (int i = 0; i < AMOUNT_OF_EACH_OBJECT; i++) {
         auto boxPosition = nextRandomPosition();
         objects.insert({boxPosition, ObjectType::Box});
+
+        auto storageLocation = nextRandomPosition();
+        storageLocations.push_back(storageLocation);
 
         auto pillarPosition = nextRandomPosition();
         objects.insert({pillarPosition, ObjectType::Pillar});
@@ -69,7 +77,11 @@ Board createInitialBoard() {
 
     auto playerPosition = nextRandomPosition();
 
-    return {.objects = objects, .playerPosition = playerPosition};
+    return {
+        .storageLocations = storageLocations,
+        .objects = objects,
+        .playerPosition = playerPosition
+    };
 }
 
 void startGame(GLFWwindow *window, float aspectRatio) {
@@ -88,15 +100,19 @@ void startGame(GLFWwindow *window, float aspectRatio) {
 
     auto camera = framework::Camera::createPerspective(45.f, aspectRatio, cameraPosition, cameraTarget, cameraUp);
 
-    // Rendering
-    auto floor = Floor::create(BOARD_SIZE);
-    auto playerRenderer = ObjectRenderer::create(PLAYER_COLOR);
-    auto wallRenderer = ObjectRenderer::create(WALL_COLOR);
-    auto boxRenderer = ObjectRenderer::create(BOX_COLOR);
-    auto pillarRenderer = ObjectRenderer::create(PILLAR_COLOR);
-
     // Game state
     auto board = createInitialBoard();
+
+    // Rendering
+    auto floor = Floor::create(BOARD_SIZE, board.storageLocations);
+
+    auto cubeModel = makeCubeModel();
+    auto pillarModel = makePillarModel();
+
+    auto playerRenderer = ObjectRenderer::create(PLAYER_COLOR, cubeModel);
+    auto wallRenderer = ObjectRenderer::create(WALL_COLOR, cubeModel);
+    auto boxRenderer = ObjectRenderer::create(BOX_COLOR, cubeModel);
+    auto pillarRenderer = ObjectRenderer::create(PILLAR_COLOR, pillarModel);
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);

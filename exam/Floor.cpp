@@ -1,3 +1,4 @@
+#include <regex>
 #include "Floor.h"
 #include "constants.h"
 
@@ -17,43 +18,88 @@ const std::string vertexShaderSource = R"(
 
     void main() {
         vertex_data.grid_position = position;
-
         gl_Position = projection * view * model * vec4(position, 0, 1);
     }
 )";
 
-// language=glsl
-const std::string fragmentShaderSource = R"(
-    #version 450 core
+std::string fragmentShaderSource() {
+    // language=glsl
+    std::string shader = R"(
+        #version 450 core
 
-    in VertexData {
-        vec2 grid_position;
-    } vertex_data;
+        in VertexData {
+            vec2 grid_position;
+        } vertex_data;
 
-    out vec4 color;
+        out vec4 color;
 
-    uniform vec3 floor_color;
+        uniform vec3 floor_color;
+        uniform vec3 storage_location_color;
 
-    const float LINE_WIDTH = 0.05;
+        struct StorageLocation {
+            uvec2 position;
+        };
 
-//    const vec3 COLOR = vec3(0.8, 0.788, 0.737); // #CCC9BC
-    const vec3 GRID_COLOR = vec3(0.2, 0.2, 0.2);
+        layout(std140) uniform StorageLocationBuffer {
+            StorageLocation storage_locations[AMOUNT_OF_EACH_OBJECT];
+        };
 
-    void main() {
-        vec2 distance_from_grid = fract(vertex_data.grid_position);
+        const float LINE_WIDTH = 0.05;
+        const float CIRCLE_SIZE = 0.2;
+        const vec3 GRID_COLOR = vec3(0.2, 0.2, 0.2);
 
-        bool vertical_line = distance_from_grid.x < LINE_WIDTH || distance_from_grid.x > (1. - LINE_WIDTH);
-        bool horizontal_line = distance_from_grid.y < LINE_WIDTH || distance_from_grid.y > (1. - LINE_WIDTH);
+        void main() {
+            bool is_on_storage_location = false;
 
-        // If there is either a line horizontally or vertically
-        bool grid = vertical_line || horizontal_line;
+            for (uint i = 0; i < AMOUNT_OF_EACH_OBJECT; i++) {
+                vec2 storage_location = storage_locations[i].position;
 
-        color = vec4(grid ? GRID_COLOR : floor_color, 1);
-    }
-)";
+                if (uvec2(vertex_data.grid_position) == storage_location) {
+                    is_on_storage_location = true;
+                }
+            }
 
-Floor Floor::create(glm::uvec2 size) {
-    auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
+            vec2 distance_from_grid = fract(vertex_data.grid_position);
+
+            bool vertical_line = distance_from_grid.x < LINE_WIDTH || distance_from_grid.x > (1. - LINE_WIDTH);
+            bool horizontal_line = distance_from_grid.y < LINE_WIDTH || distance_from_grid.y > (1. - LINE_WIDTH);
+
+            // If there is either a line horizontally or vertically
+            bool grid_pattern = vertical_line || horizontal_line;
+
+            // Circle pattern for storage locations
+            vec2 centered = (distance_from_grid * 2) - 1;
+            bool circle_pattern = (centered.x * centered.x + centered.y * centered.y) < CIRCLE_SIZE;
+
+            color = vec4(
+                grid_pattern ?
+                    GRID_COLOR :
+                    ((is_on_storage_location && circle_pattern) ? storage_location_color : floor_color
+                ),
+                1
+            );
+        }
+    )";
+
+    // Replace constants with actual value
+    shader = std::regex_replace(shader, std::regex("AMOUNT_OF_EACH_OBJECT"), std::to_string(AMOUNT_OF_EACH_OBJECT));
+
+    return shader;
+}
+
+
+Floor Floor::create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations) {
+    auto mappedStorageLocations = storageLocations | std::views::transform([](auto storageLocation) {
+        return StorageLocation{
+            .position = storageLocation,
+        };
+    });
+
+    auto storageLocationsBuffer = framework::UniformBuffer<StorageLocation>::create(
+        {mappedStorageLocations.begin(), mappedStorageLocations.end()}
+    );
+
+    auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource());
 
     std::vector<Vertex> vertices = {
         { // right top
@@ -88,7 +134,8 @@ Floor Floor::create(glm::uvec2 size) {
 
     return {
         .shader = shader,
-        .vertexArray = std::move(vertexArray)
+        .vertexArray = std::move(vertexArray),
+        .storageLocationsBuffer = std::move(storageLocationsBuffer)
     };
 }
 
@@ -100,6 +147,8 @@ void Floor::draw(const framework::Camera &camera) const {
     shader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     shader->uploadUniformFloat3("floor_color", FLOOR_COLOR);
+    shader->uploadUniformFloat3("storage_location_color", STORAGE_LOCATION_COLOR);
+    shader->uploadUniformBuffer("StorageLocationBuffer", 0, storageLocationsBuffer);
 
     vertexArray.draw();
 }
