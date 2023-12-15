@@ -1,11 +1,12 @@
-#ifndef EXAMAUTUMN2023_OBJECT_H
-#define EXAMAUTUMN2023_OBJECT_H
+#ifndef EXAMAUTUMN2023_OBJECTRENDERER_H
+#define EXAMAUTUMN2023_OBJECTRENDERER_H
 
 #include "framework/VertexArray.h"
-#include "Object.h"
+#include "ObjectRenderer.h"
 #include "framework/Camera.h"
 
-struct Object {
+/// Renders objects that has a simple vertex specification
+struct ObjectRenderer {
     struct Vertex {
         /// Vertex position
         glm::vec3 position;
@@ -18,23 +19,15 @@ struct Object {
         {.type = GL_FLOAT, .size = 3, .offset = offsetof(Vertex, position)},
         {.type = GL_FLOAT, .size = 3, .offset = offsetof(Vertex, color)},
     };
-
+    
     // Shared shader
     static std::shared_ptr<framework::Shader> shader;
 
-    explicit Object(framework::VertexArray<Object::Vertex> vertexArray);
+    framework::VertexArray<ObjectRenderer::Vertex> vertexArray;
 
-//    // Move constructor
-    Object(Object &&object) noexcept;
+    static ObjectRenderer create(glm::vec3 color);
 
-    framework::VertexArray<Object::Vertex> vertexArray;
-
-    static Object create(glm::vec3 color);
-
-    void draw(
-        glm::uvec2 position,
-        const framework::Camera &
-    ) const;
+    void draw(glm::uvec2 position, const framework::Camera &camera) const;
 };
 
-#endif //EXAMAUTUMN2023_OBJECT_H
+#endif //EXAMAUTUMN2023_OBJECTRENDERER_H

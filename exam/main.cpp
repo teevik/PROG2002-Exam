@@ -2,34 +2,74 @@
 #include "stb_image.h"
 #include "framework/window.h"
 #include "framework/Camera.h"
-#include "Object.h"
+#include "ObjectRenderer.h"
 #include "Floor.h"
-#include "data_structures/SparseGrid.h"
+#include "constants.h"
+#include <algorithm>
+#include <random>
+#include "glm/gtx/hash.hpp"
 
-const glm::uvec2 BOARD_SIZE = {10, 10};
-const glm::vec3 PLAYER_COLOR = {0.82, 0.89, 0.37};
-const glm::vec3 WALL_COLOR = {0.41, 0.37, 0.30};
+enum class ObjectType {
+    Wall,
+    Box,
+    Pillar
+};
 
-SparseGrid<Object> createWalls() {
-    auto walls = SparseGrid<Object>(BOARD_SIZE);
+std::vector<glm::uvec2> getShuffledBoardPositions() {
+    std::vector<glm::uvec2> shuffledBoardPositions;
 
-    auto createWall = [&walls](glm::vec2 position) {
-        auto wall = Object::create(WALL_COLOR);
-        walls.set(position, std::move(wall));
+    // Add all positions that arent a wall
+    for (uint32_t x = 1; x < (BOARD_SIZE.x - 1); x++) {
+        for (uint32_t y = 1; y < (BOARD_SIZE.y - 1); y++) {
+            shuffledBoardPositions.emplace_back(x, y);
+        }
+    }
+
+    // Shuffle vector
+    std::random_device rd;
+    std::shuffle(shuffledBoardPositions.begin(), shuffledBoardPositions.end(), std::default_random_engine(rd()));
+
+    return shuffledBoardPositions;
+}
+
+struct Board {
+    std::unordered_map<glm::uvec2, ObjectType> objects;
+    glm::uvec2 playerPosition;
+};
+
+Board createInitialBoard() {
+    auto objects = std::unordered_map<glm::uvec2, ObjectType>();
+
+    //
+    for (uint32_t x = 0; x < BOARD_SIZE.x; x++) {
+        objects.insert({{x, 0}, ObjectType::Wall});
+        objects.insert({{x, BOARD_SIZE.y - 1}, ObjectType::Wall});
+    }
+    for (uint32_t y = 0; y < BOARD_SIZE.y; y++) {
+        objects.insert({{0, y}, ObjectType::Wall});
+        objects.insert({{BOARD_SIZE.x - 1, y}, ObjectType::Wall});
+    }
+
+    auto shuffledBoardPositions = getShuffledBoardPositions();
+
+    auto nextRandomPosition = [&shuffledBoardPositions]() {
+        auto value = shuffledBoardPositions.back();
+        shuffledBoardPositions.pop_back();
+
+        return value;
     };
 
-    for (uint32_t x = 0; x < BOARD_SIZE.x; x++) {
-        createWall({x, 0});
-        createWall({x, BOARD_SIZE.y - 1});
+    for (int i = 0; i < AMOUNT_OF_EACH_OBJECT; i++) {
+        auto boxPosition = nextRandomPosition();
+        objects.insert({boxPosition, ObjectType::Box});
+
+        auto pillarPosition = nextRandomPosition();
+        objects.insert({pillarPosition, ObjectType::Pillar});
     }
 
-    // Makes some duplicates, but they will just replace the overlapping walls in the grid
-    for (uint32_t y = 0; y < BOARD_SIZE.y; y++) {
-        createWall({0, y});
-        createWall({BOARD_SIZE.x - 1, y});
-    }
+    auto playerPosition = nextRandomPosition();
 
-    return std::move(walls);
+    return {.objects = objects, .playerPosition = playerPosition};
 }
 
 void startGame(GLFWwindow *window, float aspectRatio) {
@@ -42,21 +82,24 @@ void startGame(GLFWwindow *window, float aspectRatio) {
     glm::vec2 rotationOffset = glm::vec2(glm::cos(angle), glm::sin(angle)) * 8.f;
     glm::vec2 centerOfBoard = glm::vec2(BOARD_SIZE) / 2.f;
 
-    glm::vec3 position = {centerOfBoard + rotationOffset, 20.f};
-    glm::vec3 target = {centerOfBoard, 0.f};
-    glm::vec3 up = {0.f, 0.f, 1.f};
+    glm::vec3 cameraPosition = {centerOfBoard + rotationOffset, 20.f};
+    glm::vec3 cameraTarget = {centerOfBoard, 0.f};
+    glm::vec3 cameraUp = {0.f, 0.f, 1.f};
 
-    auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
+    auto camera = framework::Camera::createPerspective(45.f, aspectRatio, cameraPosition, cameraTarget, cameraUp);
 
+    // Rendering
     auto floor = Floor::create(BOARD_SIZE);
-    auto player = Object::create(PLAYER_COLOR);
-    auto walls = createWalls();
+    auto playerRenderer = ObjectRenderer::create(PLAYER_COLOR);
+    auto wallRenderer = ObjectRenderer::create(WALL_COLOR);
+    auto boxRenderer = ObjectRenderer::create(BOX_COLOR);
+    auto pillarRenderer = ObjectRenderer::create(PILLAR_COLOR);
+
+    // Game state
+    auto board = createInitialBoard();
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);
-
-    // Clear color
-    glm::vec3 backgroundColor = {0.917f, 0.905f, 0.850f};
 
     // Event loop
     while (!glfwWindowShouldClose(window)) {
@@ -69,18 +112,27 @@ void startGame(GLFWwindow *window, float aspectRatio) {
         glfwPollEvents();
 
         // Background color
-        glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
+        glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, 1.0f);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         floor.draw(camera);
-        player.draw({1, 1}, camera);
+        playerRenderer.draw(board.playerPosition, camera);
 
-        for (uint32_t x = 0; x < BOARD_SIZE.x; x++) {
-            for (uint32_t y = 0; y < BOARD_SIZE.y; y++) {
-                auto &wall = walls.get({x, y});
+        for (auto [position, objectType]: board.objects) {
+            switch (objectType) {
+                case ObjectType::Wall:
+                    wallRenderer.draw(position, camera);
+                    break;
 
-                if (wall.has_value()) wall->draw({x, y}, camera);
+                case ObjectType::Box:
+                    boxRenderer.draw(position, camera);
+                    break;
+
+                case ObjectType::Pillar:
+                    pillarRenderer.draw(position, camera);
+                    break;
             }
         }
 

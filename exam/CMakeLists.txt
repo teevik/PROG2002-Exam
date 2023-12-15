@@ -8,8 +8,9 @@ add_executable(${PROJECT_NAME} main.cpp
         data_structures/SparseGrid.h
         Floor.cpp
         Floor.h
-        Object.cpp
-        Object.h)
+        ObjectRenderer.cpp
+        ObjectRenderer.h
+        constants.h)
 
 # Libraries to link with
 target_link_libraries(${PROJECT_NAME} glm glfw glad OpenGL::GL stb framework)

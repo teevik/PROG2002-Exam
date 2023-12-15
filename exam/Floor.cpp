@@ -1,4 +1,5 @@
 #include "Floor.h"
+#include "constants.h"
 
 // language=glsl
 const std::string vertexShaderSource = R"(
@@ -31,9 +32,11 @@ const std::string fragmentShaderSource = R"(
 
     out vec4 color;
 
+    uniform vec3 floor_color;
+
     const float LINE_WIDTH = 0.05;
 
-    const vec3 COLOR = vec3(1, 1, 1);
+//    const vec3 COLOR = vec3(0.8, 0.788, 0.737); // #CCC9BC
     const vec3 GRID_COLOR = vec3(0.2, 0.2, 0.2);
 
     void main() {
@@ -45,7 +48,7 @@ const std::string fragmentShaderSource = R"(
         // If there is either a line horizontally or vertically
         bool grid = vertical_line || horizontal_line;
 
-        color = vec4(grid ? GRID_COLOR : COLOR, 1);
+        color = vec4(grid ? GRID_COLOR : floor_color, 1);
     }
 )";
 
@@ -95,6 +98,8 @@ void Floor::draw(const framework::Camera &camera) const {
     shader->uploadUniformMatrix4("model", modelMatrix);
     shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
     shader->uploadUniformMatrix4("view", camera.viewMatrix());
+
+    shader->uploadUniformFloat3("floor_color", FLOOR_COLOR);
 
     vertexArray.draw();
 }
