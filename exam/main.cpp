@@ -1,12 +1,26 @@
 #include "glad/glad.h"
 #include "stb_image.h"
 #include "framework/window.h"
-#include "glm/vec3.hpp"
+#include "framework/Camera.h"
+#include "Player.h"
+#include "Floor.h"
+
+const glm::uvec2 BOARD_SIZE = {10, 10};
 
 void startGame(GLFWwindow *window, float aspectRatio) {
     // Time
     double lastFrameTime;
     float deltaTime;
+
+    // Camera
+    glm::vec3 position = {0.f, 0.f, 30.f};
+    glm::vec3 target = {0.f, 0.f, 0.f};
+    glm::vec3 up = {0.f, 1.f, 0.f};
+
+    auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
+
+    auto floor = Floor::create(BOARD_SIZE);
+    auto player = Player::create();
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);
@@ -29,6 +43,8 @@ void startGame(GLFWwindow *window, float aspectRatio) {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        floor.draw(camera);
+        player.draw({9, 9}, camera);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
