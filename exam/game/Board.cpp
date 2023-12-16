@@ -3,6 +3,7 @@
 #include "Board.h"
 #include "../constants.h"
 
+/// Helper list for finding random positions without picking the same one again
 std::vector<glm::uvec2> getShuffledBoardPositions() {
     std::vector<glm::uvec2> shuffledBoardPositions;
 
@@ -63,4 +64,48 @@ Board Board::createInitialBoard() {
         .objects = objects,
         .playerPosition = playerPosition
     };
+}
+
+static glm::ivec2 directionToVector(Direction direction) {
+    switch (direction) {
+        case Direction::Up:
+            return {0, 1};
+        case Direction::Down:
+            return {0, -1};
+        case Direction::Left:
+            return {-1, 0};
+        case Direction::Right:
+            return {1, 0};
+    }
+}
+
+static bool isInBounds(glm::ivec2 position) {
+    return
+        position.x >= 0 &&
+        position.x < BOARD_SIZE.x &&
+        position.y >= 0 &&
+        position.y < BOARD_SIZE.y;
+}
+
+void Board::movePlayer(Direction direction) {
+    auto directionVec = directionToVector(direction);
+
+    auto wantedPlayerPosition = glm::ivec2(playerPosition) + directionVec;
+
+    if (!objects.contains(wantedPlayerPosition)) {
+        // No collision
+        playerPosition = wantedPlayerPosition;
+    } else if (objects.at(wantedPlayerPosition) == ObjectType::Box) {
+        // Collision with box
+        auto positionBehindObstacle = wantedPlayerPosition + directionVec;
+
+        if (isInBounds(positionBehindObstacle) && !objects.contains(positionBehindObstacle)) {
+            // Remove box from old position
+            objects.erase(wantedPlayerPosition);
+            // Place box where it would be pushed to
+            objects.insert({positionBehindObstacle, ObjectType::Box});
+
+            playerPosition = wantedPlayerPosition;
+        }
+    }
 }

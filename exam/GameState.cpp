@@ -10,14 +10,19 @@ void GameState::handleKeyInput(int key, int action) {
             useTextures = !useTextures;
             break;
 
-//            case GLFW_KEY_LEFT:
-//                break;
-//            case GLFW_KEY_RIGHT:
-//                break;
-//            case GLFW_KEY_UP:
-//                break;
-//            case GLFW_KEY_DOWN:
-//                break;
+            // Player movement
+        case GLFW_KEY_LEFT:
+            board.movePlayer(Direction::Left);
+            break;
+        case GLFW_KEY_RIGHT:
+            board.movePlayer(Direction::Right);
+            break;
+        case GLFW_KEY_UP:
+            board.movePlayer(Direction::Up);
+            break;
+        case GLFW_KEY_DOWN:
+            board.movePlayer(Direction::Down);
+            break;
 
         default:
             break;
@@ -25,6 +30,7 @@ void GameState::handleKeyInput(int key, int action) {
 }
 
 void GameState::update(GLFWwindow *window, float deltaTime) {
+    // Camera angle
     if (glfwGetKey(window, GLFW_KEY_D)) {
         cameraAngle += CAMERA_SENSITIVITY * deltaTime;
     }
@@ -33,6 +39,7 @@ void GameState::update(GLFWwindow *window, float deltaTime) {
         cameraAngle -= CAMERA_SENSITIVITY * deltaTime;
     }
 
+    // Camera zoom
     if (glfwGetKey(window, GLFW_KEY_S)) {
         cameraZoom -= ZOOM_SENSITIVITY * deltaTime;
         cameraZoom = glm::clamp(cameraZoom, MIN_ZOOM, MAX_ZOOM);

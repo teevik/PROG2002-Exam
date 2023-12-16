@@ -25,11 +25,10 @@ struct ObjectRenderer {
     static std::shared_ptr<framework::Shader> shader;
 
     framework::VertexArray<ObjectRenderer::Vertex> vertexArray;
-    glm::vec3 color;
 
-    static ObjectRenderer create(glm::vec3 color, const Model &model);
+    static ObjectRenderer create(const Model &model);
 
-    void draw(glm::uvec2 position, const framework::Camera &camera) const;
+    void draw(glm::uvec2 position, glm::vec3 color, const framework::Camera &camera) const;
 };
 
 #endif //EXAMAUTUMN2023_OBJECTRENDERER_H

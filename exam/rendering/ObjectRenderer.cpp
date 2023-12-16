@@ -31,7 +31,7 @@ const std::string fragmentShaderSource = R"(
 
 std::shared_ptr<framework::Shader> ObjectRenderer::shader = nullptr;
 
-ObjectRenderer ObjectRenderer::create(glm::vec3 color, const Model &model) {
+ObjectRenderer ObjectRenderer::create(const Model &model) {
     if (shader == nullptr) {
         shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
     }
@@ -45,11 +45,10 @@ ObjectRenderer ObjectRenderer::create(glm::vec3 color, const Model &model) {
 
     return {
         .vertexArray = std::move(vertexArray),
-        .color = color
     };
 }
 
-void ObjectRenderer::draw(glm::uvec2 position, const framework::Camera &camera) const {
+void ObjectRenderer::draw(glm::uvec2 position, glm::vec3 color, const framework::Camera &camera) const {
     auto modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(position, 0));
 
