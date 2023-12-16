@@ -52,10 +52,8 @@ void startGame(GLFWwindow *window, float aspectRatio) {
     auto cubeModel = makeCubeModel();
     auto pillarModel = makePillarModel();
 
-    auto playerRenderer = ObjectRenderer::create(PLAYER_COLOR, cubeModel);
-    auto wallRenderer = ObjectRenderer::create(WALL_COLOR, cubeModel);
-    auto boxRenderer = ObjectRenderer::create(BOX_COLOR, cubeModel);
-    auto pillarRenderer = ObjectRenderer::create(PILLAR_COLOR, pillarModel);
+    auto cubeRenderer = ObjectRenderer::create(cubeModel);
+    auto pillarRenderer = ObjectRenderer::create(pillarModel);
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);
@@ -79,21 +77,31 @@ void startGame(GLFWwindow *window, float aspectRatio) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         floorRenderer.draw(camera);
-        playerRenderer.draw(gameState.board.playerPosition, camera);
+        cubeRenderer.draw(gameState.board.playerPosition, PLAYER_COLOR, camera);
 
         for (auto [position, objectType]: gameState.board.objects) {
             switch (objectType) {
                 case ObjectType::Wall:
-                    wallRenderer.draw(position, camera);
-                    break;
-
-                case ObjectType::Box:
-                    boxRenderer.draw(position, camera);
+                    cubeRenderer.draw(position, WALL_COLOR, camera);
                     break;
 
                 case ObjectType::Pillar:
-                    pillarRenderer.draw(position, camera);
+                    pillarRenderer.draw(position, PILLAR_COLOR, camera);
                     break;
+
+                case ObjectType::Box: {
+                    const auto &storageLocations = gameState.board.storageLocations;
+                    auto isOnStorageLocation =
+                        std::find(storageLocations.begin(), storageLocations.end(), position) != storageLocations.end();
+
+                    if (isOnStorageLocation) {
+                        cubeRenderer.draw(position, FINISHED_BOX_COLOR, camera);
+                    } else {
+                        cubeRenderer.draw(position, BOX_COLOR, camera);
+                    }
+
+                    break;
+                }
             }
         }
 
