@@ -50,6 +50,12 @@ void startGame(GLFWwindow *window, float aspectRatio) {
     // Camera
     auto camera = createCamera(aspectRatio);
 
+    // Light
+    auto light = Light{
+        .position = {BOARD_SIZE.x / 2, BOARD_SIZE.y / 2, 5},
+        .color = glm::vec3(1.f)
+    };
+
     // Rendering
     glEnable(GL_DEPTH_TEST);
     auto floorRenderer = FloorRenderer::create(BOARD_SIZE, gameState.board.storageLocations);
@@ -72,8 +78,8 @@ void startGame(GLFWwindow *window, float aspectRatio) {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        floorRenderer.draw(camera, gameState.useTextures);
-        boardRenderer.draw(gameState.board, camera, gameState.useTextures);
+        floorRenderer.draw(light, camera, gameState.useTextures);
+        boardRenderer.draw(gameState.board, light, camera, gameState.useTextures);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);

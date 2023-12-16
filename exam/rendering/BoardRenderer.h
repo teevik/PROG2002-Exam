@@ -15,7 +15,7 @@ struct BoardRenderer {
 
     static BoardRenderer create();
 
-    void draw(const Board &board, const framework::Camera &camera, bool useTextures) const;
+    void draw(const Board &board, const Light &light, const framework::Camera &camera, bool useTextures) const;
 };
 
 #endif //EXAMAUTUMN2023_BOARDRENDERER_H
