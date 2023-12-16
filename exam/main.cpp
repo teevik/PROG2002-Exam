@@ -6,8 +6,8 @@
 #include <random>
 #include "rendering/FloorRenderer.h"
 #include "game/Board.h"
-#include "GameState.h"
 #include "rendering/BoardRenderer.h"
+#include "game/GameState.h"
 
 framework::Camera createCamera(float aspectRatio) {
     glm::vec2 centerOfBoard = glm::vec2(BOARD_SIZE) / 2.f;

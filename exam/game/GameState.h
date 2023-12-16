@@ -2,7 +2,7 @@
 #define EXAMAUTUMN2023_GAMESTATE_H
 
 #include "GLFW/glfw3.h"
-#include "game/Board.h"
+#include "Board.h"
 
 /// Handles game state and input, contains no rendering code.
 struct GameState {

@@ -10,8 +10,8 @@ add_executable(${PROJECT_NAME} main.cpp
         rendering/ObjectRenderer.cpp
         rendering/ObjectRenderer.h
         constants.h
-        GameState.cpp
-        GameState.h
+        game/GameState.cpp
+        game/GameState.h
         game/Board.cpp
         game/Board.h
         rendering/BoardRenderer.cpp
