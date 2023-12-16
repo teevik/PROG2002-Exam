@@ -77,6 +77,8 @@ static glm::ivec2 directionToVector(Direction direction) {
         case Direction::Right:
             return {1, 0};
     }
+
+    return {}; // Unreachable
 }
 
 static bool isInBounds(glm::ivec2 position) {

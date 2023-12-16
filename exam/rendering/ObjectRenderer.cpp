@@ -6,12 +6,18 @@ const std::string vertexShaderSource = R"(
     #version 450 core
 
     layout(location = 0) in vec3 position;
+    layout(location = 1) in vec3 texture_coordinates;
+
+    out VertexData {
+        vec3 texture_coordinates;
+    } vertex_data;
 
     uniform mat4 projection;
     uniform mat4 view;
     uniform mat4 model;
 
     void main() {
+        vertex_data.texture_coordinates = texture_coordinates;
         gl_Position = projection * view * model * vec4(position, 1);
     }
 )";
@@ -20,12 +26,21 @@ const std::string vertexShaderSource = R"(
 const std::string fragmentShaderSource = R"(
     #version 450 core
 
+    in VertexData {
+        vec3 texture_coordinates;
+    } vertex_data;
+
     out vec4 out_color;
 
+    layout(binding=0) uniform samplerCube texture_sampler;
     uniform vec3 color;
+    uniform bool use_textures;
 
     void main() {
-        out_color = vec4(color, 1);
+        vec4 uniform_color = vec4(color, 1);
+        vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
+
+        out_color = mix(uniform_color, texture_color, use_textures ? 0.3 : 0);
     }
 )";
 
@@ -48,7 +63,13 @@ ObjectRenderer ObjectRenderer::create(const Model &model) {
     };
 }
 
-void ObjectRenderer::draw(glm::uvec2 position, glm::vec3 color, const framework::Camera &camera) const {
+void ObjectRenderer::draw(
+    glm::uvec2 position,
+    glm::vec3 color,
+    const framework::Texture *texture,
+    const framework::Camera &camera,
+    bool useTextures
+) const {
     auto modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(position, 0));
 
@@ -57,6 +78,9 @@ void ObjectRenderer::draw(glm::uvec2 position, glm::vec3 color, const framework:
     shader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     shader->uploadUniformFloat3("color", color);
+
+    shader->uploadUniformBool1("use_textures", useTextures && texture);
+    if (useTextures && texture) texture->bind();
 
     vertexArray.draw();
 }

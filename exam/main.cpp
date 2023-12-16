@@ -73,7 +73,7 @@ void startGame(GLFWwindow *window, float aspectRatio) {
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         floorRenderer.draw(camera);
-        boardRenderer.draw(gameState.board, camera);
+        boardRenderer.draw(gameState.board, camera, gameState.useTextures);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
