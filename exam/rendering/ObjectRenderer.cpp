@@ -36,17 +36,6 @@ ObjectRenderer ObjectRenderer::create(glm::vec3 color, const Model &model) {
         shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
     }
 
-//    auto vertices =
-//        framework::unitCube::vertices | std::views::transform([color](auto position) {
-//            return ObjectRenderer::Vertex{
-//                .position = {
-//                    ((position.xy() + glm::vec2(1.f)) / 2.f), // Transpose xy origin to be bottom left origin
-//                    position.z + 0.5}, // Transpose z to have origin at the bottom
-//            };
-//        });
-//
-//    auto indices = framework::unitCube::indices;
-
     auto vertexArray = framework::VertexArray(
         shader,
         ObjectRenderer::VERTEX_ATTRIBUTES,

@@ -1,6 +1,6 @@
 #include <regex>
-#include "Floor.h"
-#include "constants.h"
+#include "FloorRenderer.h"
+#include "../constants.h"
 
 // language=glsl
 const std::string vertexShaderSource = R"(
@@ -88,7 +88,7 @@ std::string fragmentShaderSource() {
 }
 
 
-Floor Floor::create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations) {
+FloorRenderer FloorRenderer::create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations) {
     auto mappedStorageLocations = storageLocations | std::views::transform([](auto storageLocation) {
         return StorageLocation{
             .position = storageLocation,
@@ -139,7 +139,7 @@ Floor Floor::create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocat
     };
 }
 
-void Floor::draw(const framework::Camera &camera) const {
+void FloorRenderer::draw(const framework::Camera &camera) const {
     auto modelMatrix = glm::mat4(1.0f);
 
     shader->uploadUniformMatrix4("model", modelMatrix);

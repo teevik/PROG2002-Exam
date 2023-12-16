@@ -5,12 +5,16 @@ project(exam)
 find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME} main.cpp
-        Floor.cpp
-        Floor.h
-        ObjectRenderer.cpp
-        ObjectRenderer.h
+        rendering/FloorRenderer.cpp
+        rendering/FloorRenderer.h
+        rendering/ObjectRenderer.cpp
+        rendering/ObjectRenderer.h
         constants.h
-        models.h)
+        models.h
+        GameState.cpp
+        GameState.h
+        game/Board.cpp
+        game/Board.h)
 
 # Libraries to link with
 target_link_libraries(${PROJECT_NAME} glm glfw glad OpenGL::GL stb framework)

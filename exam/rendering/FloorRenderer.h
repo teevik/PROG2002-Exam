@@ -1,5 +1,5 @@
-#ifndef EXAMAUTUMN2023_FLOOR_H
-#define EXAMAUTUMN2023_FLOOR_H
+#ifndef EXAMAUTUMN2023_FLOORRENDERER_H
+#define EXAMAUTUMN2023_FLOORRENDERER_H
 
 #include "glm/fwd.hpp"
 #include "glm/detail/type_vec2.hpp"
@@ -7,7 +7,7 @@
 #include "framework/VertexArray.h"
 #include "framework/Camera.h"
 
-struct Floor {
+struct FloorRenderer {
     struct Vertex {
         /// Vertex position
         glm::vec2 position;
@@ -27,9 +27,9 @@ struct Floor {
     const framework::VertexArray<Vertex> vertexArray;
     const framework::UniformBuffer<StorageLocation> storageLocationsBuffer;
 
-    static Floor create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations);
+    static FloorRenderer create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations);
 
     void draw(const framework::Camera &) const;
 };
 
-#endif //EXAMAUTUMN2023_FLOOR_H
+#endif //EXAMAUTUMN2023_FLOORRENDERER_H

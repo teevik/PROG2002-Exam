@@ -2,8 +2,8 @@
 #define EXAMAUTUMN2023_MODELS_H
 
 #include <vector>
-#include "ObjectRenderer.h"
 #include "framework/geometry.h"
+#include "rendering/ObjectRenderer.h"
 
 static ObjectRenderer::Model makeCubeModel() {
     auto vertices =
@@ -31,7 +31,7 @@ static ObjectRenderer::Model makePillarModel() {
         framework::unitCube::vertices | std::views::transform([&transformationMatrix](auto position) {
             // Rotate pillar
             position = glm::vec3(transformationMatrix * glm::vec4(position, 1.0));
-            
+
             // Transpose z to have origin at the bottom, and scale
             position.z += 0.5f;
 
