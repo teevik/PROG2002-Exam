@@ -7,11 +7,19 @@
 #include "glm/detail/type_vec2.hpp"
 #include "glm/gtx/hash.hpp"
 
+enum class Direction {
+    Up,
+    Down,
+    Left,
+    Right
+};
+
 enum class ObjectType {
     Wall,
     Box,
     Pillar
 };
+
 
 struct Board {
     const std::vector<glm::uvec2> storageLocations;
@@ -19,6 +27,8 @@ struct Board {
     glm::uvec2 playerPosition;
 
     static Board createInitialBoard();
+
+    void movePlayer(Direction direction);
 };
 
 #endif //EXAMAUTUMN2023_BOARD_H

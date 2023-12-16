@@ -26,7 +26,7 @@ void startGame(GLFWwindow *window, float aspectRatio) {
 
     // Game state, needs to be static to access it from `handleKeyInput`
     static auto gameState = GameState{
-        .cameraAngle = 0.f,
+        .cameraAngle = glm::pi<float>() * 1.5f,
         .cameraZoom = 1.f,
         .useTextures = true,
         .board = Board::createInitialBoard()

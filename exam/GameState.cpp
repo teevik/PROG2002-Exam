@@ -10,14 +10,18 @@ void GameState::handleKeyInput(int key, int action) {
             useTextures = !useTextures;
             break;
 
-//            case GLFW_KEY_LEFT:
-//                break;
-//            case GLFW_KEY_RIGHT:
-//                break;
-//            case GLFW_KEY_UP:
-//                break;
-//            case GLFW_KEY_DOWN:
-//                break;
+        case GLFW_KEY_LEFT:
+            board.movePlayer(Direction::Left);
+            break;
+        case GLFW_KEY_RIGHT:
+            board.movePlayer(Direction::Right);
+            break;
+        case GLFW_KEY_UP:
+            board.movePlayer(Direction::Up);
+            break;
+        case GLFW_KEY_DOWN:
+            board.movePlayer(Direction::Down);
+            break;
 
         default:
             break;
