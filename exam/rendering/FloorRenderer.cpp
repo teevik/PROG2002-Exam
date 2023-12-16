@@ -49,8 +49,8 @@ std::string fragmentShaderSource() {
         const vec3 GRID_COLOR = vec3(0.2, 0.2, 0.2);
 
         void main() {
+            // Check if on a storage location tile
             bool is_on_storage_location = false;
-
             for (uint i = 0; i < AMOUNT_OF_EACH_OBJECT; i++) {
                 vec2 storage_location = storage_locations[i].position;
 
@@ -59,25 +59,27 @@ std::string fragmentShaderSource() {
                 }
             }
 
+            // Make grid pattern
             vec2 distance_from_grid = fract(vertex_data.grid_position);
-
             bool vertical_line = distance_from_grid.x < LINE_WIDTH || distance_from_grid.x > (1. - LINE_WIDTH);
             bool horizontal_line = distance_from_grid.y < LINE_WIDTH || distance_from_grid.y > (1. - LINE_WIDTH);
-
-            // If there is either a line horizontally or vertically
             bool grid_pattern = vertical_line || horizontal_line;
 
             // Circle pattern for storage locations
             vec2 centered = (distance_from_grid * 2) - 1;
             bool circle_pattern = (centered.x * centered.x + centered.y * centered.y) < CIRCLE_SIZE;
 
-            color = vec4(
-                grid_pattern ?
-                    GRID_COLOR :
-                    ((is_on_storage_location && circle_pattern) ? storage_location_color : floor_color
-                ),
-                1
-            );
+            // Find the color to use
+            vec3 chosen_color;
+            if (grid_pattern) {
+                chosen_color = GRID_COLOR;
+            } else if (is_on_storage_location && circle_pattern) {
+                chosen_color = storage_location_color;
+            } else {
+                chosen_color = floor_color;
+            }
+
+            color = vec4(chosen_color, 1.0);
         }
     )";
 

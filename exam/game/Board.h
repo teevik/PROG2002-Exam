@@ -20,7 +20,7 @@ enum class ObjectType {
     Pillar
 };
 
-
+/// Keeps track of the position of everything on the board
 struct Board {
     const std::vector<glm::uvec2> storageLocations;
     std::unordered_map<glm::uvec2, ObjectType> objects;

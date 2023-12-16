@@ -3,6 +3,7 @@
 #include "Board.h"
 #include "../constants.h"
 
+/// Helper list for finding random positions without picking the same one again
 std::vector<glm::uvec2> getShuffledBoardPositions() {
     std::vector<glm::uvec2> shuffledBoardPositions;
 

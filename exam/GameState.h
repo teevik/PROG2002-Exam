@@ -4,6 +4,7 @@
 #include "GLFW/glfw3.h"
 #include "game/Board.h"
 
+/// Handles game state and input, contains no rendering code.
 struct GameState {
     /// Camera angle
     float cameraAngle;

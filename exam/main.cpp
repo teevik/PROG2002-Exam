@@ -4,11 +4,19 @@
 #include "framework/Camera.h"
 #include "constants.h"
 #include <random>
-#include "models.h"
-#include "rendering/ObjectRenderer.h"
 #include "rendering/FloorRenderer.h"
 #include "game/Board.h"
 #include "GameState.h"
+#include "rendering/BoardRenderer.h"
+
+framework::Camera createCamera(float aspectRatio) {
+    glm::vec2 centerOfBoard = glm::vec2(BOARD_SIZE) / 2.f;
+    glm::vec3 cameraTarget = {centerOfBoard, 0.f};
+    glm::vec3 cameraUp = {0.f, 0.f, 1.f};
+
+    // Dont need position here since we set it in render loop
+    return framework::Camera::createPerspective(45.f, aspectRatio, {}, cameraTarget, cameraUp);
+}
 
 glm::vec3 getCameraPosition(float angle, float zoom) {
     glm::vec3 position = glm::vec3(10.f * glm::cos(angle), 10.f * glm::sin(angle), 16.f);
@@ -19,6 +27,7 @@ glm::vec3 getCameraPosition(float angle, float zoom) {
     return position + glm::vec3(centerOfBoard, 0.f);
 }
 
+/// Handles starting and running the game, ensures all resources are cleaned up before exiting.
 void startGame(GLFWwindow *window, float aspectRatio) {
     // Time
     double lastFrameTime;
@@ -39,26 +48,14 @@ void startGame(GLFWwindow *window, float aspectRatio) {
     glfwSetKeyCallback(window, handleKeyInput);
 
     // Camera
-    glm::vec2 centerOfBoard = glm::vec2(BOARD_SIZE) / 2.f;
-    glm::vec3 cameraTarget = {centerOfBoard, 0.f};
-    glm::vec3 cameraUp = {0.f, 0.f, 1.f};
-
-    // Dont need position here since we set it in render loop
-    auto camera = framework::Camera::createPerspective(45.f, aspectRatio, {}, cameraTarget, cameraUp);
+    auto camera = createCamera(aspectRatio);
 
     // Rendering
-    auto floorRenderer = FloorRenderer::create(BOARD_SIZE, gameState.board.storageLocations);
-
-    auto cubeModel = makeCubeModel();
-    auto pillarModel = makePillarModel();
-
-    auto cubeRenderer = ObjectRenderer::create(cubeModel);
-    auto pillarRenderer = ObjectRenderer::create(pillarModel);
-
-    // Enable depth
     glEnable(GL_DEPTH_TEST);
+    auto floorRenderer = FloorRenderer::create(BOARD_SIZE, gameState.board.storageLocations);
+    auto boardRenderer = BoardRenderer::create();
 
-    // Event loop
+    // Render loop
     while (!glfwWindowShouldClose(window)) {
         // Set deltaTime
         auto time = glfwGetTime();
@@ -75,35 +72,8 @@ void startGame(GLFWwindow *window, float aspectRatio) {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         floorRenderer.draw(camera);
-        cubeRenderer.draw(gameState.board.playerPosition, PLAYER_COLOR, camera);
-
-        for (auto [position, objectType]: gameState.board.objects) {
-            switch (objectType) {
-                case ObjectType::Wall:
-                    cubeRenderer.draw(position, WALL_COLOR, camera);
-                    break;
-
-                case ObjectType::Pillar:
-                    pillarRenderer.draw(position, PILLAR_COLOR, camera);
-                    break;
-
-                case ObjectType::Box: {
-                    const auto &storageLocations = gameState.board.storageLocations;
-                    auto isOnStorageLocation =
-                        std::find(storageLocations.begin(), storageLocations.end(), position) != storageLocations.end();
-
-                    if (isOnStorageLocation) {
-                        cubeRenderer.draw(position, FINISHED_BOX_COLOR, camera);
-                    } else {
-                        cubeRenderer.draw(position, BOX_COLOR, camera);
-                    }
-
-                    break;
-                }
-            }
-        }
+        boardRenderer.draw(gameState.board, camera);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
