@@ -25,11 +25,19 @@ void BoardRenderer::draw(
     const framework::Camera &camera,
     bool useTextures
 ) const {
-    cubeRenderer.draw(board.playerPosition, PLAYER_COLOR, &playerTexture, light, camera, useTextures);
+    // Get animated player position
+    glm::vec2 playerPosition =
+        board.playerAnimation.has_value() ? board.playerAnimation->currentPosition() : glm::vec2(board.playerPosition);
 
-    for (auto [position, objectType]: board.objects) {
+    cubeRenderer.draw(playerPosition, PLAYER_COLOR, &playerTexture, light, camera, useTextures);
+
+    for (auto [staticPosition, object]: board.objects) {
+        // Get animated object position
+        glm::vec2 position =
+            object.animation.has_value() ? object.animation->currentPosition() : glm::vec2(staticPosition);
+
         // Different color and renderer depending on object type
-        switch (objectType) {
+        switch (object.type) {
             case ObjectType::Wall:
                 cubeRenderer.draw(position, WALL_COLOR, &wallTexture, light, camera, useTextures);
                 break;
@@ -40,10 +48,15 @@ void BoardRenderer::draw(
 
             case ObjectType::Box: {
                 const auto &storageLocations = board.storageLocations;
-                auto isOnStorageLocation =
-                    std::find(storageLocations.begin(), storageLocations.end(), position) != storageLocations.end();
+                auto storageLocation =
+                    std::find(storageLocations.begin(), storageLocations.end(), staticPosition);
 
-                if (isOnStorageLocation) {
+                // If there is a storage location on this tile, and the box position is close enough
+                bool isCloseToStorageLocation =
+                    storageLocation != storageLocations.end() &&
+                    glm::distance(glm::vec2(*storageLocation), position) < 0.5f;
+
+                if (isCloseToStorageLocation) {
                     cubeRenderer.draw(position, FINISHED_BOX_COLOR, &boxTexture, light, camera, useTextures);
                 } else {
                     cubeRenderer.draw(position, BOX_COLOR, &boxTexture, light, camera, useTextures);
