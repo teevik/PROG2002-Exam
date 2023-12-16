@@ -146,7 +146,7 @@ void ObjectRenderer::draw(
     shader->uploadUniformFloat3("light_color", light.color);
     shader->uploadUniformFloat3("light_position", light.position);
 
-    shader->uploadUniformFloat3("ambient_color", glm::vec3(0.5f));
+    shader->uploadUniformFloat3("ambient_color", glm::vec3(0.6f));
     shader->uploadUniformFloat3("specular_color", glm::vec3(0.5f));
 
     shader->uploadUniformBool1("use_textures", useTextures && texture);

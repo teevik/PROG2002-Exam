@@ -52,7 +52,7 @@ void startGame(GLFWwindow *window, float aspectRatio) {
 
     // Light
     auto light = Light{
-        .position = {BOARD_SIZE.x / 2, BOARD_SIZE.y / 2, 5},
+        .position = {BOARD_SIZE.x / 2, BOARD_SIZE.y / 2, 4},
         .color = glm::vec3(1.f)
     };
 
