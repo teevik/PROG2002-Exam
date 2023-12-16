@@ -2,9 +2,9 @@
 #define EXAMAUTUMN2023_OBJECTRENDERER_H
 
 #include "framework/VertexArray.h"
-#include "ObjectRenderer.h"
 #include "framework/Camera.h"
 #include "framework/Texture.h"
+#include "Light.h"
 
 /// Renders objects that has a simple vertex specification
 struct ObjectRenderer {
@@ -14,29 +14,31 @@ struct ObjectRenderer {
 
         /// Cubemap texture coordinates
         glm::vec3 textureCoordinates;
+
+        /// Normals
+        glm::vec3 normal;
     };
 
     inline static const std::vector<framework::VertexAttribute> VERTEX_ATTRIBUTES = {
         {.type = GL_FLOAT, .size = 3, .offset = offsetof(Vertex, position)},
         {.type = GL_FLOAT, .size = 3, .offset = offsetof(Vertex, textureCoordinates)},
+        {.type = GL_FLOAT, .size = 3, .offset = offsetof(Vertex, normal)},
     };
 
-    struct Model {
-        std::vector<ObjectRenderer::Vertex> vertices;
-        std::vector<uint32_t> indices;
-    };
+    using Mesh = std::vector<Vertex>;
 
     // Shared shader
     static std::shared_ptr<framework::Shader> shader;
 
     framework::VertexArray<ObjectRenderer::Vertex> vertexArray;
 
-    static ObjectRenderer create(const Model &model);
+    static ObjectRenderer create();
 
     void draw(
         glm::uvec2 position,
         glm::vec3 color,
         const framework::Texture *texture,
+        const Light &light,
         const framework::Camera &camera,
         bool useTextures
     ) const;

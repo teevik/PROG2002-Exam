@@ -10,13 +10,14 @@ add_executable(${PROJECT_NAME} main.cpp
         rendering/ObjectRenderer.cpp
         rendering/ObjectRenderer.h
         constants.h
-        models.h
-        GameState.cpp
-        GameState.h
+        game/GameState.cpp
+        game/GameState.h
         game/Board.cpp
         game/Board.h
         rendering/BoardRenderer.cpp
-        rendering/BoardRenderer.h)
+        rendering/BoardRenderer.h
+        rendering/Light.h
+        rendering/phong_shader.h)
 
 # Libraries to link with
 target_link_libraries(${PROJECT_NAME} glm glfw glad OpenGL::GL stb framework)

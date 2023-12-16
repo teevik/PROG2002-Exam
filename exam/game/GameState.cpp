@@ -1,5 +1,5 @@
 #include "GameState.h"
-#include "constants.h"
+#include "../constants.h"
 
 void GameState::handleKeyInput(int key, int action) {
     if (action != GLFW_PRESS) return;

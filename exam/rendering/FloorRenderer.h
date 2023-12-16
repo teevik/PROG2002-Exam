@@ -7,6 +7,7 @@
 #include "framework/VertexArray.h"
 #include "framework/Camera.h"
 #include "framework/Texture.h"
+#include "Light.h"
 
 struct FloorRenderer {
     struct Vertex {
@@ -31,7 +32,7 @@ struct FloorRenderer {
 
     static FloorRenderer create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations);
 
-    void draw(const framework::Camera &camera, bool useTextures) const;
+    void draw(const Light &light, const framework::Camera &camera, bool useTextures) const;
 };
 
 #endif //EXAMAUTUMN2023_FLOORRENDERER_H

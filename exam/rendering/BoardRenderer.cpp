@@ -1,13 +1,9 @@
 #include "BoardRenderer.h"
-#include "../models.h"
 #include "../constants.h"
 
 BoardRenderer BoardRenderer::create() {
-    auto cubeModel = makeCubeModel();
-    auto pillarModel = makePillarModel();
-
-    auto cubeRenderer = ObjectRenderer::create(cubeModel);
-    auto pillarRenderer = ObjectRenderer::create(pillarModel);
+    auto cubeRenderer = ObjectRenderer::create();
+    auto pillarRenderer = ObjectRenderer::create();
 
     auto filtering = framework::Filtering::Nearest;
     auto playerTexture = framework::loadCubemap(RESOURCES_DIR + std::string("textures/player.png"), filtering);
@@ -23,18 +19,23 @@ BoardRenderer BoardRenderer::create() {
     };
 }
 
-void BoardRenderer::draw(const Board &board, const framework::Camera &camera, bool useTextures) const {
-    cubeRenderer.draw(board.playerPosition, PLAYER_COLOR, &playerTexture, camera, useTextures);
+void BoardRenderer::draw(
+    const Board &board,
+    const Light &light,
+    const framework::Camera &camera,
+    bool useTextures
+) const {
+    cubeRenderer.draw(board.playerPosition, PLAYER_COLOR, &playerTexture, light, camera, useTextures);
 
     for (auto [position, objectType]: board.objects) {
         // Different color and renderer depending on object type
         switch (objectType) {
             case ObjectType::Wall:
-                cubeRenderer.draw(position, WALL_COLOR, &wallTexture, camera, useTextures);
+                cubeRenderer.draw(position, WALL_COLOR, &wallTexture, light, camera, useTextures);
                 break;
 
             case ObjectType::Pillar:
-                pillarRenderer.draw(position, PILLAR_COLOR, nullptr, camera, useTextures);
+                pillarRenderer.draw(position, PILLAR_COLOR, nullptr, light, camera, useTextures);
                 break;
 
             case ObjectType::Box: {
@@ -43,9 +44,9 @@ void BoardRenderer::draw(const Board &board, const framework::Camera &camera, bo
                     std::find(storageLocations.begin(), storageLocations.end(), position) != storageLocations.end();
 
                 if (isOnStorageLocation) {
-                    cubeRenderer.draw(position, FINISHED_BOX_COLOR, &boxTexture, camera, useTextures);
+                    cubeRenderer.draw(position, FINISHED_BOX_COLOR, &boxTexture, light, camera, useTextures);
                 } else {
-                    cubeRenderer.draw(position, BOX_COLOR, &boxTexture, camera, useTextures);
+                    cubeRenderer.draw(position, BOX_COLOR, &boxTexture, light, camera, useTextures);
                 }
 
                 break;
