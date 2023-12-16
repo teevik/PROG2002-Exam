@@ -18,6 +18,8 @@ struct Animation {
 
     explicit Animation(glm::vec2 from, glm::vec2 to, float duration);
 
+    [[nodiscard]] bool isFinished() const;
+
     [[nodiscard]] glm::vec2 currentPosition() const;
 };
 

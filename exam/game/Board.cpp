@@ -8,6 +8,10 @@ Animation::Animation(glm::vec2 from, glm::vec2 to, float duration) : from(from),
     startTime = glfwGetTime();
 }
 
+bool Animation::isFinished() const {
+    return glfwGetTime() > (startTime + duration);
+}
+
 glm::vec2 Animation::currentPosition() const {
     auto t = glfwGetTime() - startTime; // Time since started animation
     t /= duration; // Divided by duration to get range between [0, 1]
@@ -107,6 +111,9 @@ static bool isInBounds(glm::ivec2 position) {
 }
 
 void Board::movePlayer(Direction direction) {
+    // Need to let animation play before moving
+    if (playerAnimation.has_value() && !playerAnimation->isFinished()) return;
+
     auto directionVec = directionToVector(direction);
 
     auto wantedPlayerPosition = glm::ivec2(playerPosition) + directionVec;
