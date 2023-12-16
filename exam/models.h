@@ -10,9 +10,10 @@ static ObjectRenderer::Model makeCubeModel() {
         framework::unitCube::vertices | std::views::transform([](auto position) {
             return ObjectRenderer::Vertex{
                 .position = {
-                    ((position.xy() + glm::vec2(1.f)) / 2.f), // Transpose xy origin to be bottom left origin
-                    position.z + 0.5 // Transpose z to have origin at the bottom
+                    ((position.xy() / 2.f + glm::vec2(0.5f))), // Transpose xy origin to be bottom left origin
+                    (position.z) / 2.f + 0.5  // Transpose z to have origin at the bottom
                 },
+                .textureCoordinates = position
             };
         });
 
@@ -31,6 +32,8 @@ static ObjectRenderer::Model makePillarModel() {
 
     auto vertices =
         framework::unitCube::vertices | std::views::transform([&rotationMatrix](auto position) {
+            auto textureCoordinates = position;
+
             // Rotate pillar
             position = glm::vec3(rotationMatrix * glm::vec4(position, 1.0));
 
@@ -39,7 +42,7 @@ static ObjectRenderer::Model makePillarModel() {
 
             // Scaling
             position *= 0.5f;
-            position.z *= 2.5f;
+            position.z *= 2.f;
 
             // Transpose xy origin to be bottom left origin
             position = {
@@ -48,7 +51,8 @@ static ObjectRenderer::Model makePillarModel() {
             };
 
             return ObjectRenderer::Vertex{
-                .position = position
+                .position = position,
+                .textureCoordinates = textureCoordinates
             };
         });
 

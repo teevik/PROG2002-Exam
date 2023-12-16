@@ -6,6 +6,7 @@
 #include "glm/detail/type_vec3.hpp"
 #include "framework/VertexArray.h"
 #include "framework/Camera.h"
+#include "framework/Texture.h"
 
 struct FloorRenderer {
     struct Vertex {
@@ -26,10 +27,11 @@ struct FloorRenderer {
     const std::shared_ptr<framework::Shader> shader;
     const framework::VertexArray<Vertex> vertexArray;
     const framework::UniformBuffer<StorageLocation> storageLocationsBuffer;
+    const framework::Texture texture;
 
     static FloorRenderer create(glm::uvec2 size, const std::vector<glm::uvec2> &storageLocations);
 
-    void draw(const framework::Camera &) const;
+    void draw(const framework::Camera &camera, bool useTextures) const;
 };
 
 #endif //EXAMAUTUMN2023_FLOORRENDERER_H
