@@ -33,6 +33,8 @@ std::string fragmentShaderSource() {
 
         out vec4 color;
 
+        layout(binding=0) uniform sampler2D texture_sampler;
+        uniform bool use_textures;
         uniform vec3 floor_color;
         uniform vec3 storage_location_color;
 
@@ -70,16 +72,22 @@ std::string fragmentShaderSource() {
             bool circle_pattern = (centered.x * centered.x + centered.y * centered.y) < CIRCLE_SIZE;
 
             // Find the color to use
-            vec3 chosen_color;
+            vec4 chosen_color;
             if (grid_pattern) {
-                chosen_color = GRID_COLOR;
-            } else if (is_on_storage_location && circle_pattern) {
-                chosen_color = storage_location_color;
+                chosen_color = vec4(GRID_COLOR, 1);
             } else {
-                chosen_color = floor_color;
+                chosen_color = vec4(floor_color, 1);
             }
 
-            color = vec4(chosen_color, 1.0);
+            vec4 texture_color = texture(texture_sampler, vertex_data.grid_position);
+            chosen_color = mix(chosen_color, texture_color, use_textures ? 0.2 : 0); // Mix texture in
+
+            // Draw circle if on storage location
+            if (is_on_storage_location && circle_pattern) {
+                chosen_color = vec4(storage_location_color, 1);
+            }
+
+            color = chosen_color;
         }
     )";
 
@@ -134,14 +142,20 @@ FloorRenderer FloorRenderer::create(glm::uvec2 size, const std::vector<glm::uvec
         framework::IndexBuffer(indices)
     );
 
+    auto texture = framework::loadTexture(
+        RESOURCES_DIR + std::string("textures/floor.png"),
+        framework::Filtering::Nearest
+    );
+
     return {
         .shader = shader,
         .vertexArray = std::move(vertexArray),
-        .storageLocationsBuffer = std::move(storageLocationsBuffer)
+        .storageLocationsBuffer = std::move(storageLocationsBuffer),
+        .texture = std::move(texture)
     };
 }
 
-void FloorRenderer::draw(const framework::Camera &camera) const {
+void FloorRenderer::draw(const framework::Camera &camera, bool useTextures) const {
     auto modelMatrix = glm::mat4(1.0f);
 
     shader->uploadUniformMatrix4("model", modelMatrix);
@@ -151,6 +165,9 @@ void FloorRenderer::draw(const framework::Camera &camera) const {
     shader->uploadUniformFloat3("floor_color", FLOOR_COLOR);
     shader->uploadUniformFloat3("storage_location_color", STORAGE_LOCATION_COLOR);
     shader->uploadUniformBuffer("StorageLocationBuffer", 0, storageLocationsBuffer);
+
+    shader->uploadUniformBool1("use_textures", useTextures);
+    if (useTextures) texture.bind();
 
     vertexArray.draw();
 }

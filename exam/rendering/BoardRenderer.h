@@ -6,12 +6,12 @@
 #include "framework/Texture.h"
 
 struct BoardRenderer {
-    ObjectRenderer cubeRenderer;
-    ObjectRenderer pillarRenderer;
+    const ObjectRenderer cubeRenderer;
+    const ObjectRenderer pillarRenderer;
 
-    framework::Texture playerTexture;
-    framework::Texture boxTexture;
-    framework::Texture wallTexture;
+    const framework::Texture playerTexture;
+    const framework::Texture boxTexture;
+    const framework::Texture wallTexture;
 
     static BoardRenderer create();
 
