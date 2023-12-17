@@ -34,7 +34,6 @@ void GameState::update(GLFWwindow *window, float deltaTime) {
     if (glfwGetKey(window, GLFW_KEY_D)) {
         cameraAngle += CAMERA_SENSITIVITY * deltaTime;
     }
-
     if (glfwGetKey(window, GLFW_KEY_A)) {
         cameraAngle -= CAMERA_SENSITIVITY * deltaTime;
     }
@@ -44,7 +43,6 @@ void GameState::update(GLFWwindow *window, float deltaTime) {
         cameraZoom -= ZOOM_SENSITIVITY * deltaTime;
         cameraZoom = glm::clamp(cameraZoom, MIN_ZOOM, MAX_ZOOM);
     }
-
     if (glfwGetKey(window, GLFW_KEY_W)) {
         cameraZoom += ZOOM_SENSITIVITY * deltaTime;
         cameraZoom = glm::clamp(cameraZoom, MIN_ZOOM, MAX_ZOOM);

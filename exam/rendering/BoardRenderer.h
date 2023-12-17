@@ -5,9 +5,9 @@
 #include "../game/Board.h"
 #include "framework/Texture.h"
 
+/// Renders the player and all objects on a board
 struct BoardRenderer {
     const ObjectRenderer cubeRenderer;
-    const ObjectRenderer pillarRenderer;
 
     const framework::Texture playerTexture;
     const framework::Texture boxTexture;
