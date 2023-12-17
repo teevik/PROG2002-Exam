@@ -13,10 +13,10 @@ struct Animation {
     float startTime;
     float duration;
 
-    glm::vec2 from;
-    glm::vec2 to;
+    glm::ivec2 from;
+    glm::ivec2 to;
 
-    explicit Animation(glm::vec2 from, glm::vec2 to, float duration);
+    explicit Animation(glm::ivec2 from, glm::ivec2 to, float duration);
 
     [[nodiscard]] bool isFinished() const;
 

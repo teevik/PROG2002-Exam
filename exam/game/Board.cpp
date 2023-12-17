@@ -4,7 +4,7 @@
 #include "../constants.h"
 #include "GLFW/glfw3.h"
 
-Animation::Animation(glm::vec2 from, glm::vec2 to, float duration) : from(from), to(to), duration(duration) {
+Animation::Animation(glm::ivec2 from, glm::ivec2 to, float duration) : from(from), to(to), duration(duration) {
     startTime = glfwGetTime();
 }
 
@@ -17,7 +17,7 @@ glm::vec2 Animation::currentPosition() const {
     t /= duration; // Divided by duration to get range between [0, 1]
     t = glm::smoothstep(0., 1., t); // Smoothen and clamp t
 
-    return glm::mix(from, to, t);
+    return glm::mix(glm::vec2(from), glm::vec2(to), t);
 }
 
 Object::Object(ObjectType type, std::optional<Animation> animation)
@@ -111,10 +111,16 @@ static bool isInBounds(glm::ivec2 position) {
 }
 
 void Board::movePlayer(Direction direction) {
-    // Need to let animation play before moving
-    if (playerAnimation.has_value() && !playerAnimation->isFinished()) return;
-
     auto directionVec = directionToVector(direction);
+
+    // Need to let animation play before moving
+    if (playerAnimation.has_value() && !playerAnimation->isFinished()) {
+        auto animationDirection = playerAnimation->to - playerAnimation->from;
+
+        // Override the old animation if going in the same direction, since it won't be abrupt then,
+        // and makes it less annoying when spamming inputs
+        if (animationDirection != directionVec) return;
+    }
 
     auto wantedPlayerPosition = glm::ivec2(playerPosition) + directionVec;
 
