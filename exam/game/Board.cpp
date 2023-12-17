@@ -2,6 +2,26 @@
 #include <algorithm>
 #include "Board.h"
 #include "../constants.h"
+#include "GLFW/glfw3.h"
+
+Animation::Animation(glm::ivec2 from, glm::ivec2 to, float duration) : from(from), to(to), duration(duration) {
+    startTime = glfwGetTime();
+}
+
+bool Animation::isFinished() const {
+    return glfwGetTime() > (startTime + duration);
+}
+
+glm::vec2 Animation::currentPosition() const {
+    auto t = glfwGetTime() - startTime; // Time since started animation
+    t /= duration; // Divided by duration to get range between [0, 1]
+    t = glm::smoothstep(0., 1., t); // Smoothen and clamp t
+
+    return glm::mix(glm::vec2(from), glm::vec2(to), t);
+}
+
+Object::Object(ObjectType type, std::optional<Animation> animation)
+    : type(type), animation(animation) {}
 
 /// Helper list for finding random positions without picking the same one again
 std::vector<glm::uvec2> getShuffledBoardPositions() {
@@ -22,16 +42,16 @@ std::vector<glm::uvec2> getShuffledBoardPositions() {
 }
 
 Board Board::createInitialBoard() {
-    auto objects = std::unordered_map<glm::uvec2, ObjectType>();
+    auto objects = std::unordered_map<glm::uvec2, Object>();
 
     // Add all walls
     for (uint32_t x = 0; x < BOARD_SIZE.x; x++) {
-        objects.insert({{x, 0}, ObjectType::Wall});
-        objects.insert({{x, BOARD_SIZE.y - 1}, ObjectType::Wall});
+        objects.insert({{x, 0}, Object(ObjectType::Wall)});
+        objects.insert({{x, BOARD_SIZE.y - 1}, Object(ObjectType::Wall)});
     }
     for (uint32_t y = 0; y < BOARD_SIZE.y; y++) {
-        objects.insert({{0, y}, ObjectType::Wall});
-        objects.insert({{BOARD_SIZE.x - 1, y}, ObjectType::Wall});
+        objects.insert({{0, y}, Object(ObjectType::Wall)});
+        objects.insert({{BOARD_SIZE.x - 1, y}, Object(ObjectType::Wall)});
     }
 
     // Helper list for finding random positions without picking the same one again
@@ -48,13 +68,13 @@ Board Board::createInitialBoard() {
     // Insert all objects
     for (int i = 0; i < AMOUNT_OF_EACH_OBJECT; i++) {
         auto boxPosition = nextRandomPosition();
-        objects.insert({boxPosition, ObjectType::Box});
+        objects.insert({boxPosition, Object(ObjectType::Box)});
 
         auto storageLocation = nextRandomPosition();
         storageLocations.push_back(storageLocation);
 
         auto pillarPosition = nextRandomPosition();
-        objects.insert({pillarPosition, ObjectType::Pillar});
+        objects.insert({pillarPosition, Object(ObjectType::Pillar)});
     }
 
     auto playerPosition = nextRandomPosition();
@@ -62,7 +82,8 @@ Board Board::createInitialBoard() {
     return {
         .storageLocations = storageLocations,
         .objects = objects,
-        .playerPosition = playerPosition
+        .playerPosition = playerPosition,
+        .playerAnimation = std::nullopt
     };
 }
 
@@ -92,21 +113,49 @@ static bool isInBounds(glm::ivec2 position) {
 void Board::movePlayer(Direction direction) {
     auto directionVec = directionToVector(direction);
 
+    // Need to let animation play before moving
+    if (playerAnimation.has_value() && !playerAnimation->isFinished()) {
+        auto animationDirection = playerAnimation->to - playerAnimation->from;
+
+        // Override the old animation if going in the same direction, since it won't be abrupt then,
+        // and makes it less annoying when spamming inputs
+        if (animationDirection != directionVec) return;
+    }
+
     auto wantedPlayerPosition = glm::ivec2(playerPosition) + directionVec;
 
+    // No collision
     if (!objects.contains(wantedPlayerPosition)) {
-        // No collision
+        playerAnimation = Animation(playerPosition, wantedPlayerPosition, ANIMATION_DURATION);
         playerPosition = wantedPlayerPosition;
-    } else if (objects.at(wantedPlayerPosition) == ObjectType::Box) {
+
+        return;
+    }
+
+    // Need to check if possible to push box
+    const auto &object = objects.at(wantedPlayerPosition);
+
+    if (object.type == ObjectType::Box) {
         // Collision with box
         auto positionBehindObstacle = wantedPlayerPosition + directionVec;
 
         if (isInBounds(positionBehindObstacle) && !objects.contains(positionBehindObstacle)) {
             // Remove box from old position
             objects.erase(wantedPlayerPosition);
-            // Place box where it would be pushed to
-            objects.insert({positionBehindObstacle, ObjectType::Box});
 
+            // Place box where it would be pushed to, with an animation
+            objects.insert(
+                {
+                    positionBehindObstacle,
+                    Object(
+                        ObjectType::Box,
+                        Animation(wantedPlayerPosition, positionBehindObstacle, ANIMATION_DURATION)
+                    )
+                }
+            );
+
+            // Move player
+            playerAnimation = Animation(playerPosition, wantedPlayerPosition, ANIMATION_DURATION);
             playerPosition = wantedPlayerPosition;
         }
     }

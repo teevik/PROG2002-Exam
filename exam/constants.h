@@ -8,6 +8,7 @@
 // Game
 const glm::uvec2 BOARD_SIZE = {10, 10};
 const uint32_t AMOUNT_OF_EACH_OBJECT = 6;
+const float ANIMATION_DURATION = 0.15f;
 
 // Camera
 const float CAMERA_SENSITIVITY = 1.75f;

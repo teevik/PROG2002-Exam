@@ -35,12 +35,13 @@ struct ObjectRenderer {
     static ObjectRenderer create();
 
     void draw(
-        glm::uvec2 position,
+        glm::vec2 position,
         glm::vec3 color,
         const framework::Texture *texture,
         const Light &light,
         const framework::Camera &camera,
-        bool useTextures
+        bool useTextures,
+        glm::vec3 glow_color = glm::vec3(0.f)
     ) const;
 };
 
