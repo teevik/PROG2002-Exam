@@ -4,7 +4,6 @@
 
 BoardRenderer BoardRenderer::create() {
     auto cubeRenderer = ObjectRenderer::create();
-    auto pillarRenderer = ObjectRenderer::create();
 
     auto filtering = framework::Filtering::Nearest;
     auto playerTexture = framework::loadCubemap(RESOURCES_DIR + std::string("textures/player.png"), filtering);
@@ -13,7 +12,6 @@ BoardRenderer BoardRenderer::create() {
 
     return {
         .cubeRenderer = std::move(cubeRenderer),
-        .pillarRenderer = std::move(pillarRenderer),
         .playerTexture = std::move(playerTexture),
         .boxTexture = std::move(boxTexture),
         .wallTexture = std::move(wallTexture)
@@ -53,7 +51,7 @@ void BoardRenderer::draw(
                 break;
 
             case ObjectType::Pillar:
-                pillarRenderer.draw(position, PILLAR_COLOR, nullptr, light, camera, useTextures);
+                cubeRenderer.draw(position, PILLAR_COLOR, nullptr, light, camera, useTextures);
                 break;
 
             case ObjectType::Box: {

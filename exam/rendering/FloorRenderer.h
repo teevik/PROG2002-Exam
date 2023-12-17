@@ -9,6 +9,7 @@
 #include "framework/Texture.h"
 #include "Light.h"
 
+/// Renders the floor with storage locations as circles
 struct FloorRenderer {
     struct Vertex {
         /// Vertex position

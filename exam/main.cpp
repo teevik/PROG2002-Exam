@@ -57,6 +57,7 @@ void startGame(GLFWwindow *window, float aspectRatio) {
     };
 
     // Rendering
+    glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, 1.0f);
     glEnable(GL_DEPTH_TEST);
     auto floorRenderer = FloorRenderer::create(BOARD_SIZE, gameState.board.storageLocations);
     auto boardRenderer = BoardRenderer::create();
@@ -72,9 +73,6 @@ void startGame(GLFWwindow *window, float aspectRatio) {
         glfwPollEvents();
         gameState.update(window, deltaTime);
         camera.position = getCameraPosition(gameState.cameraAngle, gameState.cameraZoom);
-
-        // Background color
-        glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, 1.0f);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
