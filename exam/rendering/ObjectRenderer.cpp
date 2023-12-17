@@ -51,6 +51,7 @@ static std::string fragmentShaderSource() {
 
         // Albedo
         uniform vec3 color;
+        uniform vec3 glow_color;
 
         // Camera and light
         uniform vec3 camera_position;
@@ -79,7 +80,7 @@ static std::string fragmentShaderSource() {
             );
 
             vec4 albedo = mix(uniform_color, texture_color, use_textures ? 0.3 : 0);
-            out_color = albedo * lighting;
+            out_color = (albedo + vec4(glow_color, 0)) * lighting;
         }
     )";
 
@@ -124,7 +125,8 @@ void ObjectRenderer::draw(
     const framework::Texture *texture,
     const Light &light,
     const framework::Camera &camera,
-    bool useTextures
+    bool useTextures,
+    glm::vec3 glow_color
 ) const {
     auto modelMatrix = glm::mat4(1.0f);
 
@@ -142,6 +144,7 @@ void ObjectRenderer::draw(
 
     // Shading
     shader->uploadUniformFloat3("color", color);
+    shader->uploadUniformFloat3("glow_color", glow_color);
     shader->uploadUniformFloat3("camera_position", camera.position);
     shader->uploadUniformFloat3("light_color", light.color);
     shader->uploadUniformFloat3("light_position", light.position);

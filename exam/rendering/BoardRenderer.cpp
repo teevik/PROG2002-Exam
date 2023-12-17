@@ -1,5 +1,6 @@
 #include "BoardRenderer.h"
 #include "../constants.h"
+#include "GLFW/glfw3.h"
 
 BoardRenderer BoardRenderer::create() {
     auto cubeRenderer = ObjectRenderer::create();
@@ -29,8 +30,17 @@ void BoardRenderer::draw(
     glm::vec2 playerPosition =
         board.playerAnimation.has_value() ? board.playerAnimation->currentPosition() : glm::vec2(board.playerPosition);
 
-    cubeRenderer.draw(playerPosition, PLAYER_COLOR, &playerTexture, light, camera, useTextures);
+    // Calculate player glow
+    const float GLOW_SPEED = 2.f;
+    auto glowIntensity = glm::cos(glm::pi<float>() + glfwGetTime() * GLOW_SPEED); // Range [-1, 1]
+    glowIntensity += 1; // Maps to range [0, 2]
+    glowIntensity /= 2; // Maps to range [0, 1]
+    auto playerGlow = glm::vec3(glowIntensity, glowIntensity * 0.1f, 0);
 
+    // Render player
+    cubeRenderer.draw(playerPosition, PLAYER_COLOR, &playerTexture, light, camera, useTextures, glm::vec3(playerGlow));
+
+    // Render objects
     for (auto [staticPosition, object]: board.objects) {
         // Get animated object position
         glm::vec2 position =
