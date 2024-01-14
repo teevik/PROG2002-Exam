@@ -1,5 +1,9 @@
 # PROG2002 Exam Autumn 2023
 
+My project for the PROG2002 Graphics Programming exam. It's a Sokoban game made using OpenGL and C++
+
+![](./image.png)
+
 ## Running
 
 ```sh
